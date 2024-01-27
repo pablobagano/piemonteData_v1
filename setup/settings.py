@@ -157,15 +157,15 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/4.2/howto/static-files/
 
-AZURE_ACCOUNT_NAME = os.getenv('AZURE_ACCOUNT_NAME')
-AZURE_ACCOUNT_KEY = os.getenv('AZURE_ACCOUNT_KEY')
-AZURE_CONTAINER = os.getenv('AZURE_CONTAINER')
 
-STATIC_FILES_STORAGE = ''
+
 
 if DEBUG:
     STATIC_URL = "static/"
-else: 
+else:
+    AZURE_ACCOUNT_NAME = os.getenv('AZURE_ACCOUNT_NAME')
+    AZURE_ACCOUNT_KEY = os.getenv('AZURE_ACCOUNT_KEY')
+    AZURE_CONTAINER = os.getenv('AZURE_CONTAINER')
     STATICFILES_STORAGE = "storages.backends.azure_storage.AzureStorage"
     AZURE_DOMAIN = f"{AZURE_ACCOUNT_NAME}.blob.core.windows.net"
     STATIC_URL = f"https://{AZURE_DOMAIN}/{AZURE_CONTAINER}/"
