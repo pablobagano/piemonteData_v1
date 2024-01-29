@@ -70,14 +70,59 @@ class Supervisor(models.Model):
     sobrenome = models.CharField(max_length = 30, null=False, blank=False)
     matricula = models.CharField(max_length = 20, null=False, blank=False)
     cargo = models.CharField(max_length = 20, default = 'supervisor')
-    
-    models = models.ForeignKey(Gerente)
+    gerente = models.ForeignKey(Gerente, on_delete = models.SET_NULL, null = True)
+    ativo = models.BooleanField(default = True)
     email = models.EmailField()
     email_sent = models.BooleanField(default = False)
 
-class Agente(models.Model):
-    pass
+    def __str__(self):
+        return f"{self.nome} {self.sobrenome}"
     
+    def save(self, *args, **kwargs):
+        email_sent_before_save = self.email_sent
+        super(Supervisor, self).save(*args, **kwargs)
+        user_creation, new_user = create_user_send_email(self.nome, self.sobrenome, self.cargo, self.email)
+        new_user.root_id = self.id
+        new_user.gerente = self.gerente
+        new_user.save()
+
+        if user_creation and not email_sent_before_save:
+            self.email_sent = True
+            super(Supervisor, self).save(*args, **kwargs)
+        
+
+
+class Agente(models.Model):
+    nome = models.CharField(max_length = 20, null=False, blank=False)
+    sobrenome = models.CharField(max_length = 30, null=False, blank=False)
+    matricula = models.CharField(max_length = 20, null=False, blank=False)
+    cargo = models.CharField(max_length = 20, default = 'agente')
+    gerente = models.ForeignKey(Gerente, on_delete = models.SET_NULL, null = True)
+    supervisor = models.ForeignKey(Supervisor, on_delete = models.SET_NULL, null = True)
+    ativo = models.BooleanField(default = True)
+    email = models.EmailField(null=True)
+    email_sent = models.BooleanField(default=False)
+
+    def __str__(self):
+        return f"{self.nome} {self.sobrenome}"
+
+    def save(self, *args, **kwargs):
+        if not self.supervisor and not self.gerente:
+            self.gerente = self.supervisor.gerente
+        email_sent_before_save = self.email_sent
+        super(Agente, self).save(*args, **kwargs)
+        user_creation, new_user = create_user_send_email(self.nome, self.sobrenome, self.cargo, self.email)
+        new_user.root_id = self.id
+        new_user.gerente = self.gerente
+        new_user.supervisor = self.supervisor
+        new_user.save()
+
+        if user_creation and not email_sent_before_save:
+            self.email_sent = True
+            super(Agente, self).save(*args, **kwargs)
+    
+
+
 class UserProfile(models.Model):
     user = models.OneToOneField(User, on_delete = models.PROTECT, null=False)
     nome = models.CharField(max_length = 20, null=False, blank=False)
