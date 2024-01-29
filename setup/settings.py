@@ -193,3 +193,7 @@ if not EMAIL_HOST_USER:
     raise ValueError("EMAIL_HOST_USER must be set in environment")
 if not EMAIL_HOST_PASSWORD:
     raise ValueError("EMAIL_HOST_PASSWORD must be set in environment")
+
+# BASE_URL
+
+BASE_URL = os.getenv('BASE_URL', 'http:localhost:8000')

@@ -2,6 +2,7 @@ from collections.abc import Iterable
 from django.db import models
 from django.contrib.auth.models import User
 from info import * 
+from .utils import create_user_send_email
 
 # Create your models here.
 """
@@ -32,12 +33,47 @@ class Diretor(models.Model):
     def save(self, *args, **kwargs):
         email_sent_before_save = self.email_sent
         super(Diretor, self).save(*args, **kwargs)
+        user_creation, new_user = create_user_send_email(self.nome, self.sobrenome, self.cargo, self.email)
+        new_user.root_id = self.id
+        new_user.save()
+
+        if user_creation and not email_sent_before_save:
+            self.email_sent = True
+            super(Diretor, self).save(*args, **kwargs)
+
 
 class Gerente(models.Model):
-    pass
+    nome = models.CharField(max_length = 20, null=False, blank=False)
+    sobrenome = models.CharField(max_length = 30, null=False, blank=False)
+    matricula = models.CharField(max_length = 20, null=False, blank=False)
+    cargo = models.CharField(max_length = 20, default = 'gerente')
+    ativo = models.BooleanField(default=True)
+    email = models.EmailField()
+    email_sent = models.BooleanField(default = False)
+
+    def __str__(self):
+        return f"{self.nome} {self.sobrenome}"
+    
+    def save(self, *args, **kwargs):
+        email_sent_before_save = self.email_sent
+        super(Gerente, self).save(*args, **kwargs)
+        user_creation, new_user = create_user_send_email(self.nome, self.sobrenome, self.cargo, self.email)
+        new_user.root_id = self.id
+        new_user.save()
+
+        if user_creation and not email_sent_before_save:
+            self.email_sent = True
+            super(Gerente, self).save(*args, **kwargs)
 
 class Supervisor(models.Model):
-    pass
+    nome = models.CharField(max_length = 20, null=False, blank=False)
+    sobrenome = models.CharField(max_length = 30, null=False, blank=False)
+    matricula = models.CharField(max_length = 20, null=False, blank=False)
+    cargo = models.CharField(max_length = 20, default = 'supervisor')
+    
+    models = models.ForeignKey(Gerente)
+    email = models.EmailField()
+    email_sent = models.BooleanField(default = False)
 
 class Agente(models.Model):
     pass
@@ -47,7 +83,7 @@ class UserProfile(models.Model):
     nome = models.CharField(max_length = 20, null=False, blank=False)
     sobrenome = models.CharField(max_length = 30, null=False, blank=False)
     root_id = models.IntegerField(null = False, blank = False)
-    role = models.CharField(max_length=15, null=False, blank=False, default=None)
+    cargo = models.CharField(max_length=15, null=False, blank=False, default=None)
     gerente = models.ForeignKey(Gerente, on_delete = models.SET_NULL, null = True, blank = True)
     supervisor = models.ForeignKey(Supervisor, on_delete = models.SET_NULL, null = True, blank = True)
     password_needs_change = models.BooleanField(default = False)
