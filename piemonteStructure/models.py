@@ -107,7 +107,7 @@ class Agente(models.Model):
         return f"{self.nome} {self.sobrenome}"
 
     def save(self, *args, **kwargs):
-        if not self.supervisor and not self.gerente:
+        if self.supervisor and not self.gerente:
             self.gerente = self.supervisor.gerente
         email_sent_before_save = self.email_sent
         super(Agente, self).save(*args, **kwargs)
@@ -146,4 +146,4 @@ class UserProfile(models.Model):
         return self.role == 'supervisor'
     
     def agente(self):
-        return self.role == 'Agente'
+        return self.role == 'agente'
