@@ -197,3 +197,7 @@ if not EMAIL_HOST_PASSWORD:
 # BASE_URL
 
 BASE_URL = os.getenv('BASE_URL', 'http:localhost:8000')
+
+# LOGIN_URL
+
+LOGIN_URL = '/login/'

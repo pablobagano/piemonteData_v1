@@ -18,8 +18,8 @@ def create_user_send_email(first_name, last_name, role, email):
     Aside form logging, the built-in Python library used to aid in exception handliing, all the procedures are executed Django's built-in functions
     """
     UserProfile = apps.get_model('piemonteStructure', 'UserProfile')
-    username_part_1 = unidecode(first_name.split()[0])
-    username_part_2 = unidecode(last_name.split()[-1])
+    username_part_1 = unidecode(first_name.split()[0]).lower()
+    username_part_2 = unidecode(last_name.split()[-1]).lower()
     username = f"{username_part_1}.{username_part_2}"
     marker = 1 
     while User.objects.filter(username = username).exists():
@@ -43,6 +43,7 @@ def create_user_send_email(first_name, last_name, role, email):
             send_mail(
                 'Defina sua senha - PiemonteData',
                 f"Por favor, defina sua senha no link a seguir: {password_reset_url}",
+                'adm@piemontecred.com.br',
                 [user.email],
                 fail_silently = False
             )
@@ -60,3 +61,19 @@ def create_user_send_email(first_name, last_name, role, email):
             except Exception:
                 logger.exception(f"Erro ao enviar email de fallback")
             return False, new_user
+
+
+def model_to_dict(insance):
+    """
+    Converts a Django model instance into a dictionary including all its fields.
+    """
+    data = {}
+    for field in insance._meta.fields:
+        field_name = field.name
+        field_value = getattr(insance, field_name)
+
+        if field.is_relation:
+            field_value = field_value.pk if field_value else None
+
+        data[field_name] = field_value
+    return data
