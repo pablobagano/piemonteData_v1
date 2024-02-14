@@ -22,6 +22,5 @@ urlpatterns = [
     path("admin/", admin.site.urls),
     path('',include('piemonteStructure.urls')),
     path("accounts/", include("django.contrib.auth.urls")),
-    path('login/', auth_views.LoginView.as_view(), name='login'), 
     path('reset/<uidb64>/<token>/',auth_views.PasswordResetConfirmView.as_view(), name = 'password_reset_confirm')  
 ]
